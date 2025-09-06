@@ -1,12 +1,10 @@
 %include "macros.asm"
 
-section .data 
-    textpunto db ".", 10 ;placerholder en vez del sonido
-    textraya db "-", 10   ;placeholder en vez de la raya
+section '.data' data readable writeable
+    textpunto du ".", 13, 10, 0  ; Punto con salto de línea 
+    textraya du "-", 13, 10, 0    ; Raya con salto de línea 
 
-section .text
-
-
+section '.text' code executable readable
 
 convertir_morse:
     cmp r9b, 'a'
