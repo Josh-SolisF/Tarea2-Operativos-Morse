@@ -23,3 +23,7 @@
 %macro reproduceraya 0
     imprimeEnPantalla textraya, 2
 %endmacro
+
+%macro reproduceespera 0
+    imprimeEnPantalla espacio, 3
+%endmacro

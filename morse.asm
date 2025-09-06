@@ -2,7 +2,7 @@
 
 section .data
     textbienvenida db "ingrese palabra",10,10 ; 16 caracteres incluyendo los dos saltos de línea
-
+    espacio db 10   ; Espacio para separar letras
 
 section .bss
     buffer resb 64   ; Espacio para almacenar entradas
@@ -35,6 +35,7 @@ iterar_caracter:
 
     mov r9b, al          ; Guardar carácter actual en r9b
     call convertir_morse ; Llamar a función de conversión
+    reproduceespera   ; Espacio entre caracteres
     
     inc r10
     jmp iterar_caracter
