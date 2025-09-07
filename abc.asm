@@ -1,11 +1,9 @@
-%include "macros.asm"
+textpunto: 
+    dw __utf16__('.'), 13, 10, 0
+textraya: 
+    dw __utf16__('-'), 13, 10, 0
 
-section '.data' data readable writeable
-    textpunto du ".", 13, 10, 0  ; Punto con salto de línea 
-    textraya du "-", 13, 10, 0    ; Raya con salto de línea 
-
-section '.text' code executable readable
-
+section .text
 convertir_morse:
     cmp r9b, 'a'
     je letra_a
