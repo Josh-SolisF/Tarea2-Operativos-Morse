@@ -1,4 +1,4 @@
-; - Lee las teclas con UEFI ConIn y ALMACENA en búfer hasta toparse con ENTER.
+; - Usa UEFI ConIn para leer las letras y las mete en búfer hasta toparse con ENTER.
 ; - Al presionar ENTER, imprime en morse la línea completa y reinicia la entrada.
 ;
 
@@ -6,37 +6,37 @@
 %define EXITO_EFI                 0
 
 ; Desplazamientos en EFI_SYSTEM_TABLE (x64) relevantes
-%define DESPLAZAMIENTO_TABLA_SISTEMA_EFI_EntradaCon        0x30
-%define DESPLAZAMIENTO_TABLA_SISTEMA_EFI_SalidaCon         0x40
+%define DESPLAZAMIENTO_TABLA_SISTEMA_EFI_EntradaCon        0x30 ;codigo del protocolo de entrada 
+%define DESPLAZAMIENTO_TABLA_SISTEMA_EFI_SalidaCon         0x40 ;codigo del protocolo de salida 
 
 ; EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL
-%define DESPLAZAMIENTO_STO_Reinicio                       0x00
-%define DESPLAZAMIENTO_STO_CadenaSalida                   0x08
+%define DESPLAZAMIENTO_STO_Reinicio                       0x00  ;Para reiniciar la consola 
+%define DESPLAZAMIENTO_STO_CadenaSalida                   0x08  ;Para imprimir el String 
 
 ; EFI_SIMPLE_TEXT_INPUT_PROTOCOL
-%define DESPLAZAMIENTO_SIN_Reinicio                       0x00
-%define DESPLAZAMIENTO_SIN_LeerTecla                      0x08
+%define DESPLAZAMIENTO_SIN_Reinicio                       0x00  ;Para resetear la entrada
+%define DESPLAZAMIENTO_SIN_LeerTecla                      0x08  ;Para leer la tecla
 
 ; Códigos de control
-%define CARACTER_RETROCESO                                0x0008
+%define CARACTER_RETROCESO                                0x0008    ;Backspace
 %define CARACTER_RETORNO                                  0x000D   ; Enter
-%define CODIGO_ESC_EFI                                   0x0017   ; ScanCode para ESC en UEFI
+%define CODIGO_ESC_EFI                                   0x0017   ; Para que detecte el ESC 
 
-%define MAX_BUF                                          512      ; caracteres UTF-16 (incluye NUL)
+%define MAX_BUF                                          512      ; Es la cantidad de bytes máximo del búfer
 
-; Macros para reproducir punto y raya
+; Macros que imprimen el punto y la rata
 %macro REPRODUCIR_PUNTO 0
-    mov     rcx, rbx
-    lea     rdx, [rel caracter_punto]
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida]
-    call    r11
+    mov     rcx, rbx                                    ;RCX = Para el protocolo de salida del output 
+    lea     rdx, [rel caracter_punto]                   ;RDX para la dirección del String y le metemos el punto
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida];Para poder agarrar la funcion para imprimir
+    call    r11                                         ;función de la salida 
 %endmacro
 
 %macro REPRODUCIR_RAYA 0
-    mov     rcx, rbx
-    lea     rdx, [rel caracter_raya]
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida]
-    call    r11
+    mov     rcx, rbx                                    ;RCX = Para el protocolo de salida del output 
+    lea     rdx, [rel caracter_raya]                    ;RDX para la dirección del String y le metemos la raya
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida];Para poder agarrar la funcion para imprimir
+    call    r11                                         ;función de la salida
 %endmacro
 
 default rel
@@ -46,121 +46,126 @@ section .text
 align 16
 global  efi_main
 
-; --------------------------------------------------------------------------------------
-; EFI_STATUS principal_efi(EFI_HANDLE RCX, EFI_SYSTEM_TABLE* RDX)
-; --------------------------------------------------------------------------------------
+
+; EFI principal_efi
 efi_main:
-    sub     rsp, 32
-    mov     rsi, rdx                                   ; TablaSistema
+    sub     rsp, 32                                    ;Reservar el campo para alinear las llamads 
+    mov     rsi, rdx                                   ; Guardar TablaSistema en RSI que antes estaba en RDX
 
-    ; ------------------------------------
+
     ; Inicializar SalidaCon/EntradaCon
-    ; ------------------------------------
-    mov     rbx, [rsi + DESPLAZAMIENTO_TABLA_SISTEMA_EFI_SalidaCon] ; rbx = SalidaCon
-    mov     rdi, [rsi + DESPLAZAMIENTO_TABLA_SISTEMA_EFI_EntradaCon] ; rdi = EntradaCon
+    mov     rbx, [rsi + DESPLAZAMIENTO_TABLA_SISTEMA_EFI_SalidaCon] ; rbx = va tener el protocolo de salida 
+    mov     rdi, [rsi + DESPLAZAMIENTO_TABLA_SISTEMA_EFI_EntradaCon] ; RDI = va tener el protocolo de entrada 
 
-    ; Reinicio de SalidaCon
-    mov     rcx, rbx
-    xor     rdx, rdx
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_Reinicio]
-    call    r11
+    ; Reiniciar la consola de salida 
+    mov     rcx, rbx                                ; Primer parámetro: protocolo de salida
+    xor     rdx, rdx                                ; Segundo parámetro: NULL
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_Reinicio]; Obtener función de reset
+    call    r11                                     ; Llamar a la función
 
-    ; Reinicio de EntradaCon
-    mov     rcx, rdi
-    xor     rdx, rdx
-    mov     r11, [rdi + DESPLAZAMIENTO_SIN_Reinicio]
-    call    r11
+    ; Reiniciar consola de entrada (limpiar búfer que va a tener la entrada del teclado)
+    mov     rcx, rdi                   ; Primer parámetro: protocolo de entrada
+    xor     rdx, rdx                   ; Segundo parámetro: NULL
+    mov     r11, [rdi + DESPLAZAMIENTO_SIN_Reinicio] ; Obtener función de reset
+    call    r11                        ; Llamar a la función
 
-    ; Mensajes iniciales
-    mov     rcx, rbx
-    lea     rdx, [rel cadena_inicio]
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida]
-    call    r11
+    ; Mostrar mensaje de bienvenida
+    mov     rcx, rbx                   ; Protocolo de salida
+    lea     rdx, [rel cadena_inicio]   ; Cadena de bienvenida
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    call    r11                        ; Imprimir mensaje
 
-    ; ------------------------------------
-    ; Estado del búfer: r12 = puntero base, r13 = longitud actual (en CHAR16)
-    ; ------------------------------------
-    lea     r12, [rel búfer_línea]
-    xor     r13, r13                                   ; longitud = 0
+    ;Vamos a ponerle registros a las variables
+    ;r12 va a tener la dirección del bufer 
+    ;r13 va a tener la dirección de la longitud actual
+
+    lea     r12, [rel búfer_línea]     ; Cargar dirección del búfer
+    xor     r13, r13                   ; Inicializar contador de caracteres a 0
 
 .prompt:
-    ; Mostrar prompt
-    mov     rcx, rbx
-    lea     rdx, [rel cadena_prompt]
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida]
-    call    r11
+    ; Mostrar prompt de entrada (">> ")
+    mov     rcx, rbx                   ; Protocolo de salida
+    lea     rdx, [rel cadena_prompt]   ; Cadena del prompt
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    call    r11                        ; Imprimir prompt
 
 .bucle_lectura:
-    ; esperar tecla
-    mov     rcx, rdi
-    lea     rdx, [rel búfer_tecla]
-    mov     r11, [rdi + DESPLAZAMIENTO_SIN_LeerTecla]
-    call    r11
-    test    rax, rax
-    jnz     .bucle_lectura
+    ; Leer una tecla del servicio de entrada
+    mov     rcx, rdi                   ; Protocolo de entrada
+    lea     rdx, [rel búfer_tecla]     ; Búfer donde se almacenará la tecla
+    mov     r11, [rdi + DESPLAZAMIENTO_SIN_LeerTecla] ; Función de lectura
+    call    r11                        ; Leer tecla
+    test    rax, rax                   ; Verificar si hubo error (RAX != 0)
+    jnz     .bucle_lectura             ; Reintentar si hay error
 
-    ; cargar ScanCode y UnicodeChar
-    movzx   eax, word [búfer_tecla + 0]                ; ScanCode
-    movzx   edx, word [búfer_tecla + 2]                ; UnicodeChar
+    ; Analizar la tecla presionada
+    movzx   eax, word [búfer_tecla + 0] ; Cargar ScanCode
+    movzx   edx, word [búfer_tecla + 2] ; Cargar UnicodeChar
 
-    ; ESC -> salir
+    ; Verificar si se presionó ESC (salir)
     cmp     ax, CODIGO_ESC_EFI
     je      .salir
 
-    ; ENTER -> imprimir línea completa
+; Verificar si se presionó ENTER (procesar línea)
     cmp     dx, CARACTER_RETORNO
     je      .procesar_linea
 
-    ; RETROCESO -> borrar último char del búfer
+    ; Verificar si se presionó BACKSPACE (borrar último carácter)
     cmp     dx, CARACTER_RETROCESO
     je      .manejar_retroceso
 
-    ; Si es carácter imprimible (UnicodeChar != 0) y hay espacio en buf
+    ; Ignorar teclas sin carácter Unicode (teclas especiales)
     test    dx, dx
     jz      .bucle_lectura
 
+    ; Verificar si el búfer está lleno
     cmp     r13, MAX_BUF-1
-    jae     .beep_o_ignorar                            ; sin espacio, ignorar
+    jae     .beep_o_ignorar                            ; ignorar si esta lleno
 
     ; Guardar char en el búfer (UTF-16)
-    mov     [r12 + r13*2], dx
-    inc     r13
-    jmp     .bucle_lectura
+    mov     [r12 + r13*2], dx          ; Guardar carácter en posición actual
+    inc     r13                        ; Incrementar contador de caracteres
+    jmp     .bucle_lectura             ; Continuar lectura
 
 .manejar_retroceso:
-    test    r13, r13
-    jz      .bucle_lectura
-    dec     r13
-    jmp     .bucle_lectura
+    ; Eliminar último carácter si existe
+    test    r13, r13                   ; Verificar si hay caracteres
+    jz      .bucle_lectura             ; No hacer nada si no hay caracteres
+    dec     r13                        ; Decrementar contador de caracteres
+    jmp     .bucle_lectura             ; Continuar lectura
 
 .procesar_linea:
-    ; Cerrar con NUL
-    mov     word [r12 + r13*2], 0
+    ; Terminar la cadena con NULL (UTF-16)
+    mov     word [r12 + r13*2], 0      ; Agregar terminador nulo
 
-    ; Imprimir línea
-    mov     rcx, rbx
-    lea     rdx, [rel búfer_línea]
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida]
-    call    r11
+    ; Imprimir la línea ingresada (para retroalimentación)
+    mov     rcx, rbx                   ; Protocolo de salida
+    lea     rdx, [rel búfer_línea]     ; Cadena a imprimir
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    call    r11                        ; Imprimir línea
 
-    ; Salto de línea
-    mov     rcx, rbx
-    lea     rdx, [rel cadena_nueva_linea]
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida]
-    call    r11
+    ; Imprimir salto de línea
+    mov     rcx, rbx                   ; Protocolo de salida
+    lea     rdx, [rel cadena_nueva_linea] ; Caracteres de nueva línea
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    call    r11                        ; Imprimir nueva línea
 
-    ; -------------------------------------------------
-    ; Iterar sobre cada carácter en búfer_línea
-    ; -------------------------------------------------
-    xor     r14, r14               ; índice i = 0
+    ;Hacer cada caracter de bufer a morse
+    ; En este caso r14 va a indicar el índice del carácter actual
+
+    xor     r14, r14               ; Inicializar índice i a 0
 
 .bucle_iteracion:
-    cmp     r14, r13
-    jae     .despues_iteracion      ; si i >= len -> salir del bucle
+    cmp     r14, r13                   ; Verificar si se procesaron todos los caracteres
+    jae     .despues_iteracion         ; Salir del bucle si es así
 
-    movzx   edx, word [r12 + r14*2] ; dx = UnicodeChar (UTF-16)
-    inc     r14
+    ; Cargar carácter actual del búfer
+    movzx   edx, word [r12 + r14*2]    ; Cargar carácter UTF-16
+    inc     r14                        ; Incrementar índice para siguiente carácter
 
+    ; Comparar con cada letra/número y saltar a su conversión Morse
+    ; (Se omiten las comparaciones por brevedad, pero cada bloque REPRODUCIR_* 
+    ; corresponde a la representación Morse del carácter)
     cmp     dx, 'a'
     je      .imprimir_para_a
     cmp     dx, 'A'
@@ -320,8 +325,13 @@ efi_main:
 
     cmp     dx, '9'
     je      .imprimir_para_9
-
+    ; Si no es un carácter válido, continuar con el siguiente
     jmp     .bucle_iteracion
+
+
+; Bloques de conversión Morse para cada carácter
+; Cada bloque llama a los macros REPRODUCIR_PUNTO/RAYA según el código Morse
+; y luego salta a .imprimir_espacio para separar caracteres
 
 .imprimir_para_a:
     REPRODUCIR_PUNTO
@@ -563,31 +573,36 @@ efi_main:
     REPRODUCIR_PUNTO
     jmp     .imprimir_espacio
 
+
 .imprimir_espacio:
     ; Imprimir espacio entre caracteres Morse
-    mov     rcx, rbx
-    lea     rdx, [rel caracter_espacio]
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida]
-    call    r11
-    jmp     .bucle_iteracion
+    mov     rcx, rbx                   ; Protocolo de salida
+    lea     rdx, [rel caracter_espacio] ; Espacio
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    call    r11                        ; Imprimir espacio
+    jmp     .bucle_iteracion           ; Continuar con próximo carácter
 
 .despues_iteracion:
-    ; Limpiar para la siguiente línea
-    xor     r13, r13
-    jmp     .prompt
+    ; Reiniciar el búfer para nueva entrada
+    xor     r13, r13                   ; Resetear contador de caracteres
+    jmp     .prompt                    ; Volver a mostrar prompt
 
 .beep_o_ignorar:
-    jmp     .bucle_lectura
+    ; Podría añadirse un beep aquí para indicar error
+    jmp     .bucle_lectura             ; Continuar lectura
 
 .salir:
-    mov     rcx, rbx
-    lea     rdx, [rel cadena_despedida]
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida]
-    call    r11
+    ; Mensaje de despedida
+    mov     rcx, rbx                   ; Protocolo de salida
+    lea     rdx, [rel cadena_despedida] ; Cadena de despedida
+    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    call    r11                        ; Imprimir mensaje
 
-    xor     rax, rax
-    add     rsp, 32
-    ret
+    ; Retornar con código de éxito
+    xor     rax, rax                   ; RAX = 0 (éxito)
+    add     rsp, 32                    ; Restaurar pila
+    ret                                ; Salir
+
 
 section .data
 align 2
@@ -602,7 +617,7 @@ cadena_despedida:  dw 13,10,'S','a','l','i','e','n','d','o',' ','c','o','n',' ',
 
 section .bss
 align 2
-búfer_tecla:                ; EFI_INPUT_KEY { UINT16 ScanCode; UINT16 UnicodeChar; }
+búfer_tecla:               ; Estructura para almacenar tecla (ScanCode + UnicodeChar)
     resw 2
-búfer_línea:               ; Búfer de línea (UTF-16)
+búfer_línea:               ; Búfer para almacenar la línea de entrada (UTF-16)
     resw MAX_BUF
