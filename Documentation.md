@@ -36,19 +36,19 @@ El archivo BOOTX64.efi resultante debe copiarse a una unidad USB formateada en F
 
 * **búfer\_tecla:** Reserva espacio para 2 palabras (4 bytes) para almacenar la estructura que contiene:
 
-  * `ScanCode (UINT16)`: Código de escaneo de la tecla
-  * `UnicodeChar (UINT16)`: Carácter Unicode de la tecla
+  * ScanCode (UINT16): Código de escaneo de la tecla
+  * UnicodeChar (UINT16): Carácter Unicode de la tecla
 
 * **búfer\_línea:** Búfer de tamaño MAX\_BUF (512 caracteres UTF-16, 1024 bytes) para almacenar la línea de texto ingresada por el usuario. Cada carácter se almacena en formato UTF-16 (2 bytes por carácter).
 
 * **Cadenas UTF-16:**
 
-  * `cadena_inicio`: Mensaje de bienvenida `"Palabra morse!!:"`
-  * `caracter_punto`: Carácter `.` para representar puntos Morse
-  * `caracter_raya`: Carácter `-` para representar rayas Morse
-  * `caracter_espacio`: Carácter `' '` para separar símbolos Morse
-  * `cadena_prompt`: Prompt `"// "` para indicar entrada
-  * `cadena_nueva_linea`: Secuencia de retorno de carro y nueva línea
+  * cadena_inicio: Mensaje de bienvenida "Palabra morse!!:"
+  * caracter_punto: Carácter . para representar puntos Morse
+  * caracter_raya: Carácter - para representar rayas Morse
+  * caracter_espacio: Carácter ' ' para separar símbolos Morse
+  * cadena_prompt: Prompt "// " para indicar entrada
+  * cadena_nueva_linea: Secuencia de retorno de carro y nueva línea
 
 ---
 
@@ -65,14 +65,14 @@ El archivo BOOTX64.efi resultante debe copiarse a una unidad USB formateada en F
 
 * **Subrutinas principales dentro de efi\_main:**
 
-  * `.prompt`: Muestra el prompt `"// "` para indicar al usuario que puede ingresar texto.
-  * `.bucle_lectura`: Lee teclas del servicio de entrada UEFI (ConIn) utilizando la función `ReadKeyStroke`. Maneja el ENTER y otros caracteres imprimibles
-  * `.procesar_linea`: Procesa una línea completa cuando se presiona ENTER:
+  * .prompt: Muestra el prompt "// " para indicar al usuario que puede ingresar texto.
+  * .bucle_lectura: Lee teclas del servicio de entrada UEFI (ConIn) utilizando la función ReadKeyStroke. Maneja el ENTER y otros caracteres imprimibles
+  * .procesar_linea: Procesa una línea completa cuando se presiona ENTER:
 
     * Añade el terminador nulo a la cadena
     * Imprime la línea ingresada para retroalimentación
     * Llama al proceso de conversión a Morse
-  * `.bucle_iteracion`: Itera sobre cada carácter en el búfer de línea y llama a la rutina de conversión Morse correspondiente.
+  * .bucle_iteracion: Itera sobre cada carácter en el búfer de línea y llama a la rutina de conversión Morse correspondiente.
 
 ---
 
@@ -113,8 +113,8 @@ sudo cp BOOTX64.efi $2/EFI/BOOT
 
 ### Ejecución:
 
-Al arrancar desde la unidad USB, el firmware UEFI cargará automáticamente `BOOTX64.efi`.
-El programa mostrará el mensaje `"Palabra morse!!"`.
+Al arrancar desde la unidad USB, el firmware UEFI cargará automáticamente BOOTX64.efi.
+El programa mostrará el mensaje "Palabra morse!!".
 El usuario puede escribir texto y presionar ENTER para convertirlo a Morse.
 
 ---
