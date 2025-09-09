@@ -3,22 +3,6 @@
 ;
 
 
-%define EXITO_EFI                 0
-
-; Desplazamientos en EFI_SYSTEM_TABLE (x64) relevantes
-%define DESPLAZAMIENTO_TABLA_SISTEMA_EFI_EntradaCon        0x30 ;codigo del protocolo de entrada 
-%define DESPLAZAMIENTO_TABLA_SISTEMA_EFI_SalidaCon         0x40 ;codigo del protocolo de salida 
-
-; EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL
-%define DESPLAZAMIENTO_STO_Reinicio                       0x00  ;Para reiniciar la consola 
-%define DESPLAZAMIENTO_STO_CadenaSalida                   0x08  ;Para imprimir el String 
-
-; EFI_SIMPLE_TEXT_INPUT_PROTOCOL
-%define DESPLAZAMIENTO_SIN_Reinicio                       0x00  ;Para resetear la entrada
-%define DESPLAZAMIENTO_SIN_LeerTecla                      0x08  ;Para leer la tecla
-
-; Códigos de control
-%define CARACTER_RETORNO                                  0x000D   ; Enter
 
 %define MAX_BUF                                          512      ; Es la cantidad de bytes máximo del búfer
 
@@ -26,14 +10,14 @@
 %macro REPRODUCIR_PUNTO 0
     mov     rcx, rbx                                    ;RCX = Para el protocolo de salida del output 
     lea     rdx, [rel caracter_punto]                   ;RDX para la dirección del String y le metemos el punto
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida];Para poder agarrar la funcion para imprimir
+    mov     r11, [rbx + 0x08]; Código para imprimir el String para poder agarrar la funcion para imprimir
     call    r11                                         ;función de la salida 
 %endmacro
 
 %macro REPRODUCIR_RAYA 0
     mov     rcx, rbx                                    ;RCX = Para el protocolo de salida del output 
     lea     rdx, [rel caracter_raya]                    ;RDX para la dirección del String y le metemos la raya
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida];Para poder agarrar la funcion para imprimir
+    mov     r11, [rbx + 0x08];Código para imprimir el String para poder agarrar la funcion para imprimir
     call    r11                                         ;función de la salida
 %endmacro
 
@@ -52,25 +36,27 @@ efi_main:
 
 
     ; Inicializar SalidaCon/EntradaCon
-    mov     rbx, [rsi + DESPLAZAMIENTO_TABLA_SISTEMA_EFI_SalidaCon] ; rbx = va tener el protocolo de salida 
-    mov     rdi, [rsi + DESPLAZAMIENTO_TABLA_SISTEMA_EFI_EntradaCon] ; RDI = va tener el protocolo de entrada 
+    mov     rbx, [rsi + 0x40] ;codigo del protocolo de salida 
+    ; rbx = va tener el protocolo de salida 
+    mov     rdi, [rsi + 0x30] ;codigo del protocolo de entrada 
+    ; RDI = va tener el protocolo de entrada 
 
     ; Reiniciar la consola de salida 
     mov     rcx, rbx                                ; Primer parámetro: protocolo de salida
     xor     rdx, rdx                                ; Segundo parámetro: NULL
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_Reinicio]; Obtener función de reset
+    mov     r11, [rbx + 0x00]; Obtener función de reset código para reiniciar la consola 
     call    r11                                     ; Llamar a la función
 
     ; Reiniciar consola de entrada (limpiar búfer que va a tener la entrada del teclado)
     mov     rcx, rdi                   ; Primer parámetro: protocolo de entrada
     xor     rdx, rdx                   ; Segundo parámetro: NULL
-    mov     r11, [rdi + DESPLAZAMIENTO_SIN_Reinicio] ; Obtener función de reset
+    mov     r11, [rdi + 0x00] ;Para resetear la entrada obtener función de reset
     call    r11                        ; Llamar a la función
 
     ; Mostrar mensaje de bienvenida
     mov     rcx, rbx                   ; Protocolo de salida
     lea     rdx, [rel cadena_inicio]   ; Cadena de bienvenida
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    mov     r11, [rbx + 0x08] ;Código para imprimir el String función de impresión
     call    r11                        ; Imprimir mensaje
 
     ;Vamos a ponerle registros a las variables
@@ -84,14 +70,14 @@ efi_main:
     ; Mostrar prompt de entrada (">> ")
     mov     rcx, rbx                   ; Protocolo de salida
     lea     rdx, [rel cadena_prompt]   ; Cadena del prompt
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    mov     r11, [rbx + 0x08] ;Código para imprimir el String función de impresión
     call    r11                        ; Imprimir prompt
 
 .bucle_lectura:
     ; Leer una tecla del servicio de entrada
     mov     rcx, rdi                   ; Protocolo de entrada
     lea     rdx, [rel búfer_tecla]     ; Búfer donde se almacenará la tecla
-    mov     r11, [rdi + DESPLAZAMIENTO_SIN_LeerTecla] ; Función de lectura
+    mov     r11, [rdi + 0x08] ; Para leer la tecla función de lectura
     call    r11                        ; Leer tecla
     test    rax, rax                   ; Verificar si hubo error (RAX != 0)
     jnz     .bucle_lectura             ; Reintentar si hay error
@@ -102,7 +88,7 @@ efi_main:
 
 
 ; Verificar si se presionó ENTER (procesar línea)
-    cmp     dx, CARACTER_RETORNO
+    cmp     dx, 0x000D ;codigo de return
     je      .procesar_linea
 
 
@@ -128,13 +114,13 @@ efi_main:
     ; Imprimir la línea ingresada (para retroalimentación)
     mov     rcx, rbx                   ; Protocolo de salida
     lea     rdx, [rel búfer_línea]     ; Cadena a imprimir
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    mov     r11, [rbx + 0x08] ;Código para imprimir el String función de impresión
     call    r11                        ; Imprimir línea
 
     ; Imprimir salto de línea
     mov     rcx, rbx                   ; Protocolo de salida
     lea     rdx, [rel cadena_nueva_linea] ; Caracteres de nueva línea
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    mov     r11, [rbx + 0x08] ;Código para imprimir el String función de impresión
     call    r11                        ; Imprimir nueva línea
 
     ;Hacer cada caracter de bufer a morse
@@ -565,7 +551,7 @@ efi_main:
     ; Imprimir espacio entre caracteres Morse
     mov     rcx, rbx                   ; Protocolo de salida
     lea     rdx, [rel caracter_espacio] ; Espacio
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
+    mov     r11, [rbx + 0x08] ; Función de impresión
     call    r11                        ; Imprimir espacio
     jmp     .bucle_iteracion           ; Continuar con próximo carácter
 
@@ -582,7 +568,7 @@ efi_main:
 
 section .data
 align 2
-cadena_inicio:     dw 'P','a','l','a','b','r','a',' ','m','o','r','s','e','!','!',' ',':',13,10,0
+cadena_inicio:     dw 'P','a','l','a','b','r','a',' ','m','o','r','s','e','!','!',':',13,10,0
 caracter_punto:    dw '.', 0
 caracter_raya:     dw '-', 0
 caracter_espacio:  dw ' ', 0
