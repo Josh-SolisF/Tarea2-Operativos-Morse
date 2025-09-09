@@ -6,18 +6,18 @@
 
 %define MAX_BUF                                          512      ; Es la cantidad de bytes máximo del búfer
 
-; Macros que imprimen el punto y la rata
+; Macros que imprimen el punto y la raya
 %macro REPRODUCIR_PUNTO 0
     mov     rcx, rbx                                    ;RCX = Para el protocolo de salida del output 
     lea     rdx, [rel caracter_punto]                   ;RDX para la dirección del String y le metemos el punto
-    mov     r11, [rbx + 0x08]; Código para imprimir el String para poder agarrar la funcion para imprimir
+    mov     r11, [rbx + 0x08]                           ; Código para imprimir el String para poder agarrar la funcion para imprimir
     call    r11                                         ;función de la salida 
 %endmacro
 
 %macro REPRODUCIR_RAYA 0
     mov     rcx, rbx                                    ;RCX = Para el protocolo de salida del output 
     lea     rdx, [rel caracter_raya]                    ;RDX para la dirección del String y le metemos la raya
-    mov     r11, [rbx + 0x08];Código para imprimir el String para poder agarrar la funcion para imprimir
+    mov     r11, [rbx + 0x08]                           ;Código para imprimir el String para poder agarrar la funcion para imprimir
     call    r11                                         ;función de la salida
 %endmacro
 
@@ -67,7 +67,7 @@ efi_main:
     xor     r13, r13                   ; Inicializar contador de caracteres a 0
 
 .prompt:
-    ; Mostrar prompt de entrada (">> ")
+    ; Mostrar prompt de entrada ("// ")
     mov     rcx, rbx                   ; Protocolo de salida
     lea     rdx, [rel cadena_prompt]   ; Cadena del prompt
     mov     r11, [rbx + 0x08] ;Código para imprimir el String función de impresión
