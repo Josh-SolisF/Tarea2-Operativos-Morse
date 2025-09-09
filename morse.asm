@@ -18,9 +18,7 @@
 %define DESPLAZAMIENTO_SIN_LeerTecla                      0x08  ;Para leer la tecla
 
 ; Códigos de control
-%define CARACTER_RETROCESO                                0x0008    ;Backspace
 %define CARACTER_RETORNO                                  0x000D   ; Enter
-%define CODIGO_ESC_EFI                                   0x0017   ; Para que detecte el ESC 
 
 %define MAX_BUF                                          512      ; Es la cantidad de bytes máximo del búfer
 
@@ -102,17 +100,11 @@ efi_main:
     movzx   eax, word [búfer_tecla + 0] ; Cargar ScanCode
     movzx   edx, word [búfer_tecla + 2] ; Cargar UnicodeChar
 
-    ; Verificar si se presionó ESC (salir)
-    cmp     ax, CODIGO_ESC_EFI
-    je      .salir
 
 ; Verificar si se presionó ENTER (procesar línea)
     cmp     dx, CARACTER_RETORNO
     je      .procesar_linea
 
-    ; Verificar si se presionó BACKSPACE (borrar último carácter)
-    cmp     dx, CARACTER_RETROCESO
-    je      .manejar_retroceso
 
     ; Ignorar teclas sin carácter Unicode (teclas especiales)
     test    dx, dx
@@ -127,12 +119,7 @@ efi_main:
     inc     r13                        ; Incrementar contador de caracteres
     jmp     .bucle_lectura             ; Continuar lectura
 
-.manejar_retroceso:
-    ; Eliminar último carácter si existe
-    test    r13, r13                   ; Verificar si hay caracteres
-    jz      .bucle_lectura             ; No hacer nada si no hay caracteres
-    dec     r13                        ; Decrementar contador de caracteres
-    jmp     .bucle_lectura             ; Continuar lectura
+
 
 .procesar_linea:
     ; Terminar la cadena con NULL (UTF-16)
@@ -591,33 +578,21 @@ efi_main:
     ; Podría añadirse un beep aquí para indicar error
     jmp     .bucle_lectura             ; Continuar lectura
 
-.salir:
-    ; Mensaje de despedida
-    mov     rcx, rbx                   ; Protocolo de salida
-    lea     rdx, [rel cadena_despedida] ; Cadena de despedida
-    mov     r11, [rbx + DESPLAZAMIENTO_STO_CadenaSalida] ; Función de impresión
-    call    r11                        ; Imprimir mensaje
-
-    ; Retornar con código de éxito
-    xor     rax, rax                   ; RAX = 0 (éxito)
-    add     rsp, 32                    ; Restaurar pila
-    ret                                ; Salir
 
 
 section .data
 align 2
-cadena_inicio:     dw 'I','n','g','r','e','s','e',' ','p','a','l','a','b','r','a','s',':',13,10,0
+cadena_inicio:     dw 'P','a','l','a','b','r','a',' ','m','o','r','s','e','!','!',' ',':',13,10,0
 caracter_punto:    dw '.', 0
 caracter_raya:     dw '-', 0
 caracter_espacio:  dw ' ', 0
 
-cadena_prompt:     dw '>', '>',' ', 0
+cadena_prompt:     dw '/', '/',' ', 0
 cadena_nueva_linea: dw 13,10,0
-cadena_despedida:  dw 13,10,'S','a','l','i','e','n','d','o',' ','c','o','n',' ','E','S','C','.',13,10,0
 
 section .bss
 align 2
-búfer_tecla:               ; Estructura para almacenar tecla (ScanCode + UnicodeChar)
+búfer_tecla:                ; Estructura para almacenar tecla (ScanCode + UnicodeChar)
     resw 2
-búfer_línea:               ; Búfer para almacenar la línea de entrada (UTF-16)
+búfer_línea:               ; Búfer de línea (UTF-16)
     resw MAX_BUF
