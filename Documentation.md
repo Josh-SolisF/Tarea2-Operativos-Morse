@@ -1,4 +1,6 @@
-Introducción:
+Estudiante: Joshua Solís Fuentes 
+Carné:2023064637
+# Introducción:
 En las lecciones en clase hemos introducido conceptos clave como es el UEFI (Unified Extensible Firmware Interface) es una especificación que define una interfaz de software entre el sistema operativo y el firmware de la plataforma. Lo hemos visto mucho en teoría pero es necesario comprenderlo en la práctica.
 La presente tarea aborda la necesidad de realmente comprender el comportamiento de estos programas de una manera pre sistema operativo, específicamente a través la implementación de un programa que recibe un prompt y lo traduce a código morse.
 La herramienta está desarrollada en nasm64 y este programa implementa una aplicación UEFI. La aplicación lee caracteres del teclado mediante el protocolo ConIn de UEFI, los almacena en un búfer, y al presionar enter, convierte toda la línea ingresada a código Morse utilizando el protocolo ConOut para la salida. El programa se ensambla utilizando NASM para Win64 (dado que UEFI utiliza código de 64 bits) y se enlaza con lld-link para generar un ejecutable EFI:
@@ -138,7 +140,7 @@ El usuario puede escribir texto y presionar ENTER para convertirlo a Morse.
 
 ### Estado final del programa:
 
-El programa UEFI de conversión a Morse funciona correctamente como aplicación independiente sin sistema operativo, pero presenta algunas limitaciones en su funcionalidad.
+El programa UEFI de conversión a Morse funciona correctamente como aplicación independiente sin sistema operativo, pero presenta algunas limitaciones en su funcionalidad, como el de no poder reproducir sonido.
 
 **Funcionalidades implementadas:**
 
@@ -160,6 +162,109 @@ El programa UEFI de conversión a Morse funciona correctamente como aplicación 
 * No hay persistencia de datos
 * Tamaño de búfer limitado
 
+Log de github:
+```
+commit 98095bd6c4ef5e3db9c17638f99d9c5d3f5c9ac4
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Mon Sep 15 10:37:42 2025 -0600
+
+    final changes
+
+commit f8c32163274e6904d93dee1faaa2199a768f680e
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Tue Sep 9 16:48:47 2025 -0600
+
+    fix
+
+commit 29bd2eb8370362d1347825c0b2fc41a72d9610d3
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Tue Sep 9 16:31:29 2025 -0600
+
+    puntuation
+
+commit 206d5a273ca7cf9dd742335c9545526e49513e9e
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Tue Sep 9 16:16:20 2025 -0600
+
+    Documentation
+
+commit adb23e345fb9bdcdf6154ff65ae439e39b7889be
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Tue Sep 9 11:38:16 2025 -0600
+
+    code refactor
+
+commit b85322f6bad870a759341db4c8572d7c1ffe8e3d
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Tue Sep 9 11:11:24 2025 -0600
+
+    Code refactor
+
+commit e4f9d0b38b7027392f736745183d4d6674b4c7d7
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Tue Sep 9 10:27:00 2025 -0600
+
+    comments for better understading
+
+commit a7a530294ae86d6b716255c130468447ff243d54
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Tue Sep 9 09:20:09 2025 -0600
+
+    added functionality to boot
+
+commit d09996f7dcfd8e2fd073dc8bdb040434a3935e7f
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Sat Sep 6 22:13:51 2025 -0600
+
+    early implementation of uefi
+
+commit fbfdaaa87ffad0a98a22cad9282664d5be297ac7
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Sat Sep 6 11:32:41 2025 -0600
+
+    code transalation to adapt calls from uefi instead of syscalls
+
+commit f2d2997d26d023a0ea9dcebf636e7200e8a8881c
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Sat Sep 6 10:43:10 2025 -0600
+
+    added functionality to write more letters
+
+commit 782170943705c890286f094561d37b72447692b0
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Sat Sep 6 10:22:51 2025 -0600
+
+    initial code with basic functionalinity and no sound
+
+commit 92c594064f4e2ede0c6c3680e8c7aef6cf82b1e7
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Fri Sep 5 19:56:26 2025 -0600
+
+    initial idea for the program structure
+
+commit a19f5208abef0d2b0f32dc59465079dbe80a9838
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Fri Sep 5 18:08:23 2025 -0600
+
+    Initial commit to test out nasm functionality
+
+commit ac210636aeda20369d543081b43c9a9db763587d
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Fri Sep 5 16:56:26 2025 -0600
+
+    first commit
+
+commit 62ecd2e99eec09dc88e5d7013cb6a9e75fe6eaef
+Author: josh_lis <josh.solisf@gmail.com>
+Date:   Fri Sep 5 16:55:32 2025 -0600
+
+    first commit
+
+```
+# Rúbrica:
+Sector de Arranque: 30 /30.
+Morse: 40/50.
+Documentación: 20/20 
 ---
 
 ## Lecciones aprendidas:
