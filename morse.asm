@@ -98,7 +98,7 @@ efi_main:
 
     ; Verificar si el búfer está lleno
     cmp     r13, MAX_BUF-1
-    jae     .beep_o_ignorar                            ; ignorar si esta lleno
+    jae     .bucle_lectura                            ; ignorar si esta lleno
 
     ; Guardar char en el búfer (UTF-16)
     mov     [r12 + r13*2], dx          ; Guardar carácter en posición actual
@@ -559,10 +559,6 @@ efi_main:
     ; Reiniciar el búfer para nueva entrada
     xor     r13, r13                   ; Resetear contador de caracteres
     jmp     .prompt                    ; Volver a mostrar prompt
-
-.beep_o_ignorar:
-    ; Podría añadirse un beep aquí para indicar error
-    jmp     .bucle_lectura             ; Continuar lectura
 
 
 
