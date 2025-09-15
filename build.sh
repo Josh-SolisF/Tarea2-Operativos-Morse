@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -ne 2 ]; then
-    echo "No se ingresó la ruta a ningún archivo nasm o no se ingresó la ruta hacia el USB."
+    echo "Porfavor ingrese la ruta archivo nasm o la ruta hacia el USB."
     exit 1
 fi
 
@@ -10,4 +10,4 @@ lld-link /subsystem:efi_application /entry:efi_main /machine:x64 /nodefaultlib /
 sudo mkdir -p $2/EFI/BOOT
 sudo cp BOOTX64.efi $2/EFI/BOOT
 
-echo "Se ha creado el archivo BOOTX64.efi y se ha transferido a la USB en EFI/BOOT."
+echo "El archivo BOOTX64.efi se ha transferido a la USB"
